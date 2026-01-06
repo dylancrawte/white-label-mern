@@ -1,7 +1,7 @@
-name: sonar-presents-app
+name: white-label-app
 
 services:
-  backend: 
+  api: 
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -10,6 +10,27 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+    networks:
+      - mern-app
     ports:
       - 3000:3000
-    
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: ./frontend/.env
+    volumes: 
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - mern-app
+    ports:
+      - 8081:8081
+    depends_on:
+      - api
+
+networks: 
+  mern-app: 
+    driver: bridge

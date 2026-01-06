@@ -20,7 +20,6 @@ export default function AuthRoutesLayout() {
                   headerLargeTitleShadowVisible: false,
                   headerShadowVisible: true,
                   headerLargeStyle: {
-                    // NEW: Make the large title transparent to match the background.
                     // backgroundColor: "transparent",
                   },
                 }),

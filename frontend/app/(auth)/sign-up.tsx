@@ -61,7 +61,7 @@ export default function SignUpScreen() {
       // If verification was completed, set the session to active, & redirect user
       if (signUpAttempt.status === "complete") {
         await setActive({ session: signUpAttempt.createdSessionId });
-        router.replace("/");
+        router.replace("/(index)");
       } else {
         console.error(JSON.stringify(signUpAttempt, null, 2));
       }

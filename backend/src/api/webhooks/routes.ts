@@ -1,86 +1,58 @@
-import { Webhook } from 'svix'
-import { headers } from 'next/headers'
-import { WebhookEvent, clerkClient } from '@clerk/nextjs/server'
+import { verifyWebhook } from '@clerk/express/webhooks'
+import express from 'express'
+//import { clerkClient } from '@clerk/express'
+import { createUser, deleteUser } from '../../features/users/actions/user.action.ts'
 
-import { createUser } from '../../lib/actions/user.action'
-import { NextResponse } from 'next/server'
+const router = express.Router();
 
-export async function POST(req: Request) {
-  const SIGNING_SECRET = process.env.CLERK_WEBHOOK_SIGNING_SECRET
+router.get('/test', (req, res) => {
+  res.send('Hello World')
+})
 
-  if (!SIGNING_SECRET) {
-    throw new Error('Error: Please add SIGNING_SECRET from Clerk Dashboard to .env or .env.local')
-  }
-
-  // Create new Svix instance with secret
-  const wh = new Webhook(SIGNING_SECRET)
-
-  // Get headers
-  const headerPayload = await headers()
-  const svix_id = headerPayload.get('svix-id')
-  const svix_timestamp = headerPayload.get('svix-timestamp')
-  const svix_signature = headerPayload.get('svix-signature')
-
-  // If there are no headers, error out
-  if (!svix_id || !svix_timestamp || !svix_signature) {
-    return new Response('Error: Missing Svix headers', {
-      status: 400,
-    })
-  }
-
-  // Get body
-  const payload = await req.json()
-  const body = JSON.stringify(payload)
-
-  let evt: WebhookEvent
-
-  // Verify payload with headers
+router.post('/clerk', express.raw({ type: 'application/json' }), async (req, res) => {
   try {
-    evt = wh.verify(body, {
-      'svix-id': svix_id,
-      'svix-timestamp': svix_timestamp,
-      'svix-signature': svix_signature,
-    }) as WebhookEvent
-  } catch (err) {
-    console.error('Error: Could not verify webhook:', err)
-    return new Response('Error: Verification error', {
-      status: 400,
-    })
-  }
+    const evt = await verifyWebhook(req)
 
-  // Do something with payload
-  // For this guide, log payload to console
-  const { id } = evt.data
-  const eventType = evt.type
+    // Do something with payload
+    const { id } = evt.data
+    const eventType = evt.type
 
-  //create user in MongoDB 
-  if (eventType === 'user.created') {
-    const { id, email_addresses, username } = evt.data
-    const user = ({
-      id,
-      email: email_addresses[0].email_address,
-      username: username,
-    })
+    if (eventType === 'user.created') {
+      console.log('user data:', evt.data)
 
-    console.log('User created:', user)
+      const clerkID = evt.data.id
+      const email = evt.data.email_addresses[0].email_address
 
-    const newUser = await createUser(user)
-
-    //update metadata in clerk on new User creation
-    if (newUser) {
-      const client = await clerkClient()
-      await client.users.updateUserMetadata(id, {
-        publicMetadata: {
-          userId: newUser._id,
-        },
+      const user = ({
+        clerkID,
+        email
       })
+
+      await createUser(user);
+
+      console.log("User created:" + user);
     }
 
-    return NextResponse.json({ message: 'User created successfully', user: newUser }, { status: 200 })
-  }
-  
-  console.log(`Received webhook with ID ${id} and event type of ${eventType}`)
-  console.log('Webhook payload:', body)
+    if (eventType === 'user.deleted') {
+      console.log('user to be deleted:', evt.data)
 
-  return new Response('Webhook received', { status: 200 })
-}
+      const clerkID_delete = evt.data.id
+      console.log('clerkId:', clerkID_delete)
+
+      const deletedUser = await deleteUser(clerkID_delete!);
+
+      if (deletedUser) {
+        console.log('User deleted:', evt.data.id)
+      } else {
+        console.log('Error deleting user, is there a clerk id provided?')
+      }
+    }
+
+    return res.send('Webhook received')
+  } catch (err) {
+    console.error('Error verifying webhook:', err)
+    return res.status(400).send('Error verifying create webhook')
+  }
+})
+
+export default router; 
