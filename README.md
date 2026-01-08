@@ -1,26 +1,27 @@
-# White - Label MERN Stack Application, ready for customization!
+# White - Label MERN Stack Application
 
-Mobile application featuring basic features, ready to take your idea off the ground without the boring set up!
+Mobile application featuring basic features, ready to take your idea off the ground, without the boring set up!
 - React Native Expo frontend
 - MongoDB backend connected
 - Clerk Authentication
-- Docker images
+- Dockerized
 
 # 🛠️ Set up and installation
 
-(QUICKSTART)
+(QUICKSTART / PREVIEW)
 1. Root directory
 
    ```bash
    docker compose up
    ```
 
-This will spin up the frontend and api images. You will still need to configure the database. See backend/README.md for further details on connecting.
-There are also environment variables to be set up in the frontend. See frontend/README.md for further details.
+- You will still need to configure database connection. See backend/README.md
+- Also see frontend/README.md for further details on environment variables for client.
+- IMPORTANTLY, this route is a quick start / preview, and is not the best development option. See below for dev path.
 
 
-(Local dev path)
-### client ###
+(LOCAL DEV PATH)
+### Client ###
 1. Navigate to frontend dir and install dependencies
 
    ```bash
@@ -40,7 +41,7 @@ There are also environment variables to be set up in the frontend. See frontend/
    ```
 You can now run application on IOS, Android (using Expo Go), or Web.
 
-### server ###
+### Server ###
 4. Navigate to backend dir and install dependencies
 
    ```bash

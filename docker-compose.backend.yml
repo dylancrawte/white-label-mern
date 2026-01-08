@@ -1,0 +1,16 @@
+name: white-label-app-backend
+
+services:
+  api: 
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: ./backend/.env
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - mern-app
+    ports:
+      - 3000:3000
